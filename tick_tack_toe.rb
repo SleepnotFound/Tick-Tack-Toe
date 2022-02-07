@@ -5,7 +5,6 @@ class Players
     puts "Enter a name for player #{player_num}"
     @name= gets.chomp
     @piece = set_piece(player_num)
-    #puts "Good, #{@name} your piece is: #{@piece}"
   end
   def set_piece(player_num)
     pieces = ["X","O"]
@@ -23,10 +22,11 @@ class Game
     build_board
     play_round
   end
+
   def intro
     puts "Welcome #{@p1.name}! \nWelcome #{@p2.name}!"
-    @active = [@p1.name,@p2.name].sample
-    puts "#{@active} Goes first!"
+    @active = [@p1,@p2].sample
+    puts "#{@active.name} Goes first!"
   end
   def build_board
     row = " #{@cells[0]} | #{@cells[1]} | #{@cells[2]} "
@@ -37,36 +37,53 @@ class Game
          row2 + "\n" + divider + "\n" +
          row3
   end
+
   def play_round
-    round_over = false
-    unless round_over
+    @round_over = false
+    until @round_over
       inputing
-      finish_round?      
-      #round_over = true
+      finish_round?
+      if @round_over 
+        puts "Play Again?"
+      else
+        @active == @p1 ? @active = @p2 : @active = @p1
+      end
     end
-
   end
+
   def finish_round?
-    #check for winner. if win conditon true, return true
-    #check for full board. if full board true. return true
+    win_condition = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]]
 
+    if @cells.all?(String)
+      puts "Tie!"
+      @round_over = true
+    end
+    win_condition.each do |win|
+      if win.all? { |i| @cells[i] == @active.piece }
+        puts "Winner winner chicken dinner: #{@active.name}!"
+        @round_over = true
+        break
+      end
+    end
   end
+
   def inputing
-    #accept 1..9. replace board value inputed with players.piece
-    puts "#{@active}'s turn! Choose a spot. (enter 1-9)"
+    puts "#{@active.name}'s turn! Choose a spot. (enter 1-9)"
     loop do
       input = gets.chomp.to_i
       if (1..9).include?(input) 
-        puts "valid number: #{input}"
-        #if board already has a piece -> invalid try another spot.
-        #if board has empty slot -> insert @actives piece in board
-        break
-      else puts "invalid choice son. Try again (enter 1-9)"
+        if @cells[input - 1].is_a? Numeric
+          @cells[@cells.index(input)] = @active.piece
+          build_board
+          break
+        else puts "Spot already taken! Try again."
+        end
+      else puts "invalid choice. Try again (enter 1-9)"
       end
     end
   end
 end
-#every game instantiate 2 players and 1 board
+
 p1 = Players.new(1)
 p2 = Players.new(2)
 game = Game.new(p1,p2)
